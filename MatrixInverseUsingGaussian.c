@@ -1,69 +1,120 @@
 #include <stdio.h>
 #define N 3
-void printMatrix(double mat[N][2 * N])
+void printMatrix(int n, int m, double mat[n][m])
 {
-    for (int i = 0; i < N; i++)
+    for (int i = 0; i < n; i++)
     {
-        for (int j = 0; j < 2 * N; j++)
+        for (int j = 0; j < m; j++)
         {
             printf("%3.3f ", mat[i][j]);
         }
         printf("\n");
     }
 }
-void forwardElimination(double inverse[N][2 * N])
+void forwardElimination(int n, int m, double mat[n][m])
 {
-    for (int i = 0; i < N - 1; i++)
+    for (int i = 0; i < n - 1; i++)
     {
-        for (int j = i + 1; j < N; j++)
+        for (int j = i + 1; j < n; j++)
         {
-            double ratio = inverse[j][i] / inverse[i][i];
-            for (int k = 0; k < 2 * N; k++)
+            double ratio = mat[j][i] / mat[i][i];
+            for (int k = 0; k < m; k++)
             {
-                inverse[j][k] -= ratio * inverse[i][k];
+                mat[j][k] -= ratio * mat[i][k];
             }
         }
     }
 }
-void backwordElimination(double inverse[N][2 * N])
+void backwardElimination(int n, int m, double mat[n][m])
 {
-    for (int i = N - 1; i >= 0; i--)
+    for (int i = n - 1; i >= 0; i--)
     {
         for (int j = i - 1; j >= 0; j--)
         {
-            double ratio = inverse[j][i] / inverse[i][i];
-            for (int k = 0; k < 2 * N; k++)
+            double ratio = mat[j][i] / mat[i][i];
+            for (int k = 0; k < m; k++)
             {
-                inverse[j][k] -= ratio * inverse[i][k];
+                mat[j][k] -= ratio * mat[i][k];
             }
         }
     }
 }
-void gaussElimination(double inverse[N][2 * N])
+void gaussElimination(int n, int m, double mat[n][m])
 {
-    forwardElimination(inverse);
-    backwordElimination(inverse);
-
-    for (int i = 0; i < N; i++)
+    forwardElimination(n, m, mat);
+    backwardElimination(n, m, mat);
+    for (int i = 0; i < n; i++)
     {
-        double div = inverse[i][i];
-        for (int j = 0; j < 2 * N; j++)
+        double div = mat[i][i];
+        for (int j = 0; j < m; j++)
         {
-            inverse[i][j] /= div;
+            mat[i][j] /= div;
         }
+    }
+}
+double determinant(double matrix[N][N + 1])
+{
+    double det = 1.0;
+    for (int i = 0; i < N; i++)
+        det *= matrix[i][i];
+    return det;
+}
+void inverseMatrix(int n, int m, double mat[n][m])
+{
+    int i, j;
+    double inverse[n][2 * n];
+    for (i = 0; i < n; i++)
+    {
+        for (j = 0; j < n; j++)
+        {
+            inverse[i][j] = mat[i][j];
+        }
+    }
+    for (i = 0; i < n; i++)
+    {
+        for (j = 3; j < 2 * n; j++)
+        {
+            if (i + n == j)
+                inverse[i][j] = 1;
+            else
+                inverse[i][j] = 0;
+        }
+    }
+    gaussElimination(n, 2 * n, inverse);
+    // printMatrix(n,2*n,inverse);
+    printf("Inverse matrix:\n");
+    for (i = 0; i < n; i++)
+    {
+        for (j = 3; j < 2 * n; j++)
+        {
+            printf("%3.3lf ", inverse[i][j]);
+        }
+        printf("\n");
     }
 }
 int main()
 {
-    double matrix[N][N + 1] = {
-        {4, 1, 1, 8},
-        {2, 5, 2, 3},
-        {1, 2, 4, 11}};
-    double inverse[N][2 * N] = {
-        {4, 1, 1, 1, 0, 0},
-        {2, 5, 2, 0, 1, 0},
-        {1, 2, 4, 0, 0, 1}};
+    int i,j;
+    double matrix[N][N + 1], mat[N][N + 1];
+    for (i = 0; i < N; i++)
+    {
+        for (j = 0; j <= N; j++)
+        {
+            scanf("%lf", &matrix[i][j]);
+            mat[i][j] = matrix[i][j];
+        }
+    }
 
-    gaussElimination(inverse);
-    printMatrix(inverse);
+    forwardElimination(N, N + 1, matrix);
+    double deter = determinant(matrix);
+    printf("Determinant: %3.3f\n", deter);
+    printf("Solution of linear system:\n");
+    printf("X= %3.3f\tY= %3.3f\tZ=%3.3f\n", matrix[0][0], matrix[1][1], matrix[2][2]);
+
+    if (deter == 0.0)
+        printf("No inverse matrix\n");
+    else
+        inverseMatrix(N, N + 1, mat);
+    // gaussElimination(3, 6, inverse);
+    // printMatrix(3, 6, inverse);
 }
